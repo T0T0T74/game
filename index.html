@@ -131,11 +131,8 @@ canvas { display:block; position:absolute; top:0; left:0; }
   </div>
 </div>
 
-<!-- Firebase CDN (compat版 = type="module"不要) -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
 <script>
+function initAll() {
 // ---- Firebase init ----
 const firebaseConfig = {
   apiKey: "AIzaSyC9MC2vi5yVpv122n0l40WUQ-CGpHSxD90",
@@ -612,6 +609,14 @@ function draw(){
 let last=0;
 function loop(ts){if(ts-last>14){gameUpdate();draw();last=ts;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
+}
+</script>
+
+<!-- Firebase CDN -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script>
+  window.addEventListener('load', initAll);
 </script>
 </body>
 </html>
