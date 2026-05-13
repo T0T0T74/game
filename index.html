@@ -104,14 +104,14 @@ canvas { display:block; position:absolute; top:0; left:0; }
     </div>
     <div class="lobby-box">
       <h3>🏠 部屋を作る</h3>
-      <button class="lbtn lbtn-create" id="btn-create">部屋を作成</button>
+      <button class="lbtn lbtn-create" id="btn-create" onclick="createRoom()">部屋を作成</button>
       <div id="room-display" style="display:none"></div>
       <div id="lobby-status">相手の入室を待っています…</div>
     </div>
     <div class="lobby-box">
       <h3>🚪 部屋に入る</h3>
       <input class="room-input" id="room-input" maxlength="4" placeholder="4桁のコードを入力">
-      <button class="lbtn lbtn-join" id="btn-join">入室する</button>
+      <button class="lbtn lbtn-join" id="btn-join" onclick="joinRoom()">入室する</button>
     </div>
     <p id="error-msg" style="color:#ff6b9d;font-size:0.82rem;min-height:18px;"></p>
   </div>
@@ -309,7 +309,7 @@ function updateItemUI(){
 // ===================== ROOM =====================
 function genCode(){return String(Math.floor(1000+Math.random()*9000));}
 
-document.getElementById('btn-create').addEventListener('click',async()=>{
+window.createRoom = async function() {
   const code=genCode();
   roomCode=code;
   myRole='host';
@@ -331,7 +331,7 @@ document.getElementById('btn-create').addEventListener('click',async()=>{
   });
 });
 
-document.getElementById('btn-join').addEventListener('click',async()=>{
+window.joinRoom = async function() {
   const code=document.getElementById('room-input').value.trim();
   if(code.length!==4){showError('4桁のコードを入力してください');return;}
   const snap=await get(ref(db,`rooms/${code}`));
