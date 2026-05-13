@@ -322,14 +322,13 @@ window.createRoom = async function() {
   document.getElementById('room-display').textContent=code;
   document.getElementById('lobby-status').textContent='相手の入室を待っています…';
   document.getElementById('btn-create').disabled=true;
-  // wait for guest
   onValue(ref(db,`rooms/${code}/guest`),snap=>{
     if(snap.exists()&&snap.val().connected){
       document.getElementById('lobby-status').textContent='相手が入室！ゲーム開始！';
       setTimeout(()=>startGame(),800);
     }
   });
-});
+};
 
 window.joinRoom = async function() {
   const code=document.getElementById('room-input').value.trim();
@@ -344,7 +343,7 @@ window.joinRoom = async function() {
   onDisconnect(ref(db,`rooms/${code}/guest/connected`)).set(false);
   document.getElementById('lobby-status').textContent='接続成功！ゲーム開始！';
   setTimeout(()=>startGame(),800);
-});
+};
 
 function showError(msg){document.getElementById('error-msg').textContent=msg;setTimeout(()=>document.getElementById('error-msg').textContent='',3000);}
 
