@@ -288,12 +288,15 @@ function listenOpponent(){
     }
     db.ref('rooms/'+roomCode+'/'+opRole+'/events').remove();
   });
+  // 接続監視：ゲーム開始から3秒後に有効化（初期化中の誤検知を防ぐ）
   const connPath='rooms/'+roomCode+'/'+(myRole==='host'?'guest':'host')+'/connected';
-  db.ref(connPath).on('value',snap=>{
-    if(gameState==='playing'&&snap.exists()&&snap.val()===false){
-      document.getElementById('disconnected').style.display='flex';
-    }
-  });
+  setTimeout(function(){
+    db.ref(connPath).on('value',snap=>{
+      if(gameState==='playing'&&snap.exists()&&snap.val()===false){
+        document.getElementById('disconnected').style.display='flex';
+      }
+    });
+  }, 3000);
 }
 
 // ---- lobby buttons ----
