@@ -620,17 +620,8 @@ function gameUpdate(){
   for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.92;p.vy*=.92;p.life-=p.decay;if(p.life<=0)particles.splice(i,1);}
 
   // death check
-  if(!_roundEnded){
-    if(me.hp<=0&&me.alive){
-      me.alive=false;
-      spawnParts(me.x+15,me.y+15,me.color,30,true);
-      endRound(myRole==='host'?2:1);
-    } else if(op&&op.hp<=0&&op.alive){
-      op.alive=false;
-      spawnParts(op.x+15,op.y+15,op.color,30,true);
-      endRound(myRole==='host'?1:2);
-    }
-  }
+  if(me.hp<=0&&me.alive){me.alive=false;spawnParts(me.x+15,me.y+15,me.color,30,true);endRound(myRole==='host'?2:1);}
+  else if(op&&op.hp<=0&&op.alive){op.alive=false;spawnParts(op.x+15,op.y+15,op.color,30,true);endRound(myRole==='host'?1:2);}
 }
 
 function endRound(winner){
