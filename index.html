@@ -546,11 +546,7 @@ function tryDodge(player){
 
 // ---- update ----
 function gameUpdate(){
-  if(gameState==='countdown'){
-    // カウントダウン中は移動・射撃を止める
-    return;
-  }
-  if(gameState!=='playing')return;
+  if(gameState==='countdown'||gameState!=='playing') return;
   const now=Date.now();
   if(me.ammo<MAX_AMMO&&now-me.lastRegenTime>=AMMO_REGEN){me.ammo++;me.lastRegenTime=now;updateAmmoUI();}
   if(me.activeItem&&me.itemExpiry&&now>me.itemExpiry){me.activeItem=null;me.itemExpiry=0;updateItemUI();}
@@ -623,9 +619,9 @@ function gameUpdate(){
   // particles
   for(let i=particles.length-1;i>=0;i--){const p=particles[i];p.x+=p.vx;p.y+=p.vy;p.vx*=.92;p.vy*=.92;p.life-=p.decay;if(p.life<=0)particles.splice(i,1);}
 
-  // death
+  // death check
   if(me.hp<=0&&me.alive){me.alive=false;spawnParts(me.x+15,me.y+15,me.color,30,true);endRound(myRole==='host'?2:1);}
-  if(op&&!op.alive&&gameState==='playing'){endRound(myRole==='host'?1:2);}
+  else if(op&&op.hp<=0&&op.alive){op.alive=false;spawnParts(op.x+15,op.y+15,op.color,30,true);endRound(myRole==='host'?1:2);}
 }
 
 function endRound(winner){
