@@ -26,8 +26,10 @@ canvas{display:block;position:absolute;top:0;left:0;}
 #room-display{font-size:2rem;font-weight:bold;letter-spacing:0.3em;color:#ffeb3b;text-align:center;margin:8px 0;}
 #lobby-status{color:#aaa;font-size:0.8rem;text-align:center;min-height:18px;}
 #error-msg{color:#ff6b9d;font-size:0.8rem;min-height:16px;text-align:center;}
-.items-leg{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;font-size:0.72rem;}
-.il{background:rgba(255,255,255,0.07);border-radius:6px;padding:3px 7px;}
+.tab-btn{flex:1;padding:10px;border:none;background:rgba(255,255,255,0.08);color:#aaa;font-size:0.85rem;cursor:pointer;transition:background 0.15s,color 0.15s;}
+.tab-btn:first-child{border-radius:10px 0 0 10px;}
+.tab-btn:last-child{border-radius:0 10px 10px 0;}
+.tab-btn.active{background:rgba(255,255,255,0.18);color:#fff;font-weight:bold;}
 #hud{position:absolute;top:10px;left:50%;transform:translateX(-50%);display:none;gap:1rem;align-items:center;font-size:0.8rem;font-weight:bold;pointer-events:none;}
 .hp-bar{width:100px;height:11px;background:rgba(255,255,255,0.15);border-radius:6px;overflow:hidden;}
 .hp-fill{height:100%;border-radius:6px;transition:width 0.1s;}
@@ -65,15 +67,39 @@ canvas{display:block;position:absolute;top:0;left:0;}
 <canvas id="c"></canvas>
 <div id="ui">
   <div class="screen" id="screen-mode">
-    <h1>🎮 ポップシューター</h1>
-    <p class="sub">モードを選んでください</p>
-    <div class="items-leg">
-      <div class="il">💥拡散弾</div><div class="il">💣ボム</div><div class="il">⚡高速</div>
-      <div class="il">🛡シールド</div><div class="il">🔮貫通</div><div class="il">💚回復</div>
+    <h1>POP SHOOTER</h1>
+    <p class="sub">Select Mode</p>
+
+    <!-- タブ -->
+    <div style="display:flex;gap:0;width:100%;max-width:320px;margin-bottom:2px;">
+      <button class="tab-btn active" id="tab-mode" onclick="switchTab('mode')">Mode</button>
+      <button class="tab-btn" id="tab-rules" onclick="switchTab('rules')">Rules</button>
     </div>
-    <button class="mode-btn mode-solo" id="btn-mode-solo">🤖 ソロモード<span>コンピューターと対戦</span></button>
-    <button class="mode-btn mode-online" id="btn-mode-online">📡 オンライン対戦<span>別のスマホと対戦</span></button>
-    <p class="sub" style="font-size:0.72rem">💡 相手の背面に当てると2倍ダメージ！</p>
+
+    <!-- Mode タブ -->
+    <div id="panel-mode" style="width:100%;max-width:320px;display:flex;flex-direction:column;gap:10px;">
+      <button class="mode-btn mode-solo" id="btn-mode-solo">Solo<span>vs Computer</span></button>
+      <button class="mode-btn mode-online" id="btn-mode-online">Online<span>vs Another Player</span></button>
+    </div>
+
+    <!-- Rules タブ -->
+    <div id="panel-rules" style="width:100%;max-width:320px;display:none;background:rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px;font-size:0.8rem;line-height:2;">
+      <div style="color:#ffeb3b;font-weight:bold;margin-bottom:6px">Controls</div>
+      <div>Left — Move / Aim</div>
+      <div>Fire button — Shoot</div>
+      <div>Hold Fire (3 ammo) — Charge shot (3x dmg)</div>
+      <div>Dodge button — Hop (1s cooldown)</div>
+      <div style="color:#ffeb3b;font-weight:bold;margin:8px 0 6px">Tips</div>
+      <div>Back hit = 2x damage</div>
+      <div>Hide behind walls to block bullets</div>
+      <div style="color:#ffeb3b;font-weight:bold;margin:8px 0 6px">Items</div>
+      <div>Spread — 5-way shot</div>
+      <div>Bomb — Area explosion</div>
+      <div>Speed — Move faster</div>
+      <div>Shield — Block 1 hit</div>
+      <div>Pierce — Bullets go through walls</div>
+      <div>Heal — Restore 40 HP</div>
+    </div>
   </div>
   <div class="screen" id="screen-lobby" style="display:none">
     <h1>📡 オンライン対戦</h1>
@@ -297,7 +323,13 @@ function startCountdown(cb){
 }
 
 // ---- mode buttons ----
-function addBtn(id,fn){
+function switchTab(tab){
+  document.getElementById('panel-mode').style.display=tab==='mode'?'flex':'none';
+  document.getElementById('panel-rules').style.display=tab==='rules'?'block':'none';
+  document.getElementById('tab-mode').className='tab-btn'+(tab==='mode'?' active':'');
+  document.getElementById('tab-rules').className='tab-btn'+(tab==='rules'?' active':'');
+}
+
   const el=document.getElementById(id);
   el.addEventListener('click',fn);
   el.addEventListener('touchend',function(e){e.preventDefault();fn();});
