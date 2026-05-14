@@ -72,8 +72,8 @@ canvas{display:block;position:absolute;top:0;left:0;}
 
     <!-- タブ -->
     <div style="display:flex;gap:0;width:100%;max-width:320px;margin-bottom:2px;">
-      <button class="tab-btn active" id="tab-mode" onclick="switchTab('mode')">Mode</button>
-      <button class="tab-btn" id="tab-rules" onclick="switchTab('rules')">Rules</button>
+      <button class="tab-btn active" id="tab-mode" id="tab-mode-btn">Mode</button>
+      <button class="tab-btn" id="tab-rules-btn">Rules</button>
     </div>
 
     <!-- Mode タブ -->
@@ -326,9 +326,13 @@ function startCountdown(cb){
 function switchTab(tab){
   document.getElementById('panel-mode').style.display=tab==='mode'?'flex':'none';
   document.getElementById('panel-rules').style.display=tab==='rules'?'block':'none';
-  document.getElementById('tab-mode').className='tab-btn'+(tab==='mode'?' active':'');
-  document.getElementById('tab-rules').className='tab-btn'+(tab==='rules'?' active':'');
+  document.getElementById('tab-mode-btn').className='tab-btn'+(tab==='mode'?' active':'');
+  document.getElementById('tab-rules-btn').className='tab-btn'+(tab==='rules'?' active':'');
 }
+document.getElementById('tab-mode-btn').addEventListener('click',function(){switchTab('mode');});
+document.getElementById('tab-rules-btn').addEventListener('click',function(){switchTab('rules');});
+document.getElementById('tab-mode-btn').addEventListener('touchend',function(e){e.preventDefault();switchTab('mode');});
+document.getElementById('tab-rules-btn').addEventListener('touchend',function(e){e.preventDefault();switchTab('rules');});
 
   const el=document.getElementById(id);
   el.addEventListener('click',fn);
