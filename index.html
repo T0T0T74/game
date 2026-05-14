@@ -546,11 +546,7 @@ function tryDodge(player){
 
 // ---- update ----
 function gameUpdate(){
-  if(gameState==='countdown'){
-    // カウントダウン中は移動・射撃を止める
-    return;
-  }
-  if(gameState!=='playing')return;
+  if(gameState==='countdown'||gameState!=='playing') return;
   const now=Date.now();
   if(me.ammo<MAX_AMMO&&now-me.lastRegenTime>=AMMO_REGEN){me.ammo++;me.lastRegenTime=now;updateAmmoUI();}
   if(me.activeItem&&me.itemExpiry&&now>me.itemExpiry){me.activeItem=null;me.itemExpiry=0;updateItemUI();}
@@ -608,15 +604,11 @@ function gameUpdate(){
         else if(target.hidden&&!b.pierce){spawnParts(b.x,b.y,'#888',6);remove=true;}
         else if(target.shield){target.shield=false;spawnParts(b.x,b.y,'#29b6f6',12);if(target===me)updateItemUI();remove=true;}
         else{
-          if(target===me){
-            const back=isBackHit(b,me);me.hp-=back?b.dmg*2:b.dmg;
-            spawnParts(b.x,b.y,back?'#ff0':me.color,back?20:10,back);updateHUD();
-          } else {
-            // ソロモード：CPUにダメージ
-            const back=isBackHit(b,op);op.hp-=back?b.dmg*2:b.dmg;
-            spawnParts(b.x,b.y,back?'#ff0':op.color,back?20:10,back);updateHUD();
-            if(op.hp<=0)op.alive=false;
-          }
+          const back=isBackHit(b,target);
+          target.hp-=back?b.dmg*2:b.dmg;
+          spawnParts(b.x,b.y,back?'#ff0':target.color,back?20:10,back);
+          updateHUD();
+          if(target.hp<=0)target.alive=false;
           remove=true;
         }
       }
