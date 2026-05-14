@@ -546,7 +546,11 @@ function tryDodge(player){
 
 // ---- update ----
 function gameUpdate(){
-  if(gameState==='countdown'||gameState!=='playing') return;
+  if(gameState==='countdown'){
+    // カウントダウン中は移動・射撃を止める
+    return;
+  }
+  if(gameState!=='playing')return;
   const now=Date.now();
   if(me.ammo<MAX_AMMO&&now-me.lastRegenTime>=AMMO_REGEN){me.ammo++;me.lastRegenTime=now;updateAmmoUI();}
   if(me.activeItem&&me.itemExpiry&&now>me.itemExpiry){me.activeItem=null;me.itemExpiry=0;updateItemUI();}
