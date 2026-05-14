@@ -419,6 +419,24 @@ function startOnline(){
   listenOpponent();
 }
 
+// ---- countdown ----
+let countdown=0; // 3,2,1,0=GO
+let countdownTimer=0;
+
+function startCountdown(cb){
+  countdown=3;
+  gameState='countdown';
+  countdownTimer=Date.now();
+  function tick(){
+    const elapsed=Date.now()-countdownTimer;
+    const n=3-Math.floor(elapsed/1000);
+    if(n<=0){ countdown=0; gameState='playing'; cb(); return; }
+    countdown=n;
+    setTimeout(tick, countdownTimer+((3-n+1)*1000)-Date.now());
+  }
+  setTimeout(tick,1000);
+}
+
 // ---- round init ----
 function initRound(){
   bullets=[];particles=[];items=[];_roundEnded=false;
@@ -432,6 +450,7 @@ function initRound(){
   document.getElementById('round-disp').textContent='Round '+currentRound+'/'+MAX_ROUNDS;
   updateHUD();updateAmmoUI();updateItemUI();
   joy.active=false;fireState.active=false;fireState.charging=false;
+  startCountdown(()=>{});
 }
 
 // ---- AI ----
@@ -527,6 +546,10 @@ function tryDodge(player){
 
 // ---- update ----
 function gameUpdate(){
+  if(gameState==='countdown'){
+    // カウントダウン中は移動・射撃を止める
+    return;
+  }
   if(gameState!=='playing')return;
   const now=Date.now();
   if(me.ammo<MAX_AMMO&&now-me.lastRegenTime>=AMMO_REGEN){me.ammo++;me.lastRegenTime=now;updateAmmoUI();}
@@ -585,8 +608,15 @@ function gameUpdate(){
         else if(target.hidden&&!b.pierce){spawnParts(b.x,b.y,'#888',6);remove=true;}
         else if(target.shield){target.shield=false;spawnParts(b.x,b.y,'#29b6f6',12);if(target===me)updateItemUI();remove=true;}
         else{
-          if(target===me){const back=isBackHit(b,me);me.hp-=back?b.dmg*2:b.dmg;spawnParts(b.x,b.y,back?'#ff0':me.color,back?20:10,back);updateHUD();}
-          else{spawnParts(b.x,b.y,op.color,10);}
+          if(target===me){
+            const back=isBackHit(b,me);me.hp-=back?b.dmg*2:b.dmg;
+            spawnParts(b.x,b.y,back?'#ff0':me.color,back?20:10,back);updateHUD();
+          } else {
+            // ソロモード：CPUにダメージ
+            const back=isBackHit(b,op);op.hp-=back?b.dmg*2:b.dmg;
+            spawnParts(b.x,b.y,back?'#ff0':op.color,back?20:10,back);updateHUD();
+            if(op.hp<=0)op.alive=false;
+          }
           remove=true;
         }
       }
@@ -737,6 +767,31 @@ function draw(){
   };
   dp(me,'あなた');dp(op,gameMode==='solo'?'CPU':'相手');
   if(joy.active){ctx.save();ctx.strokeStyle='rgba(255,255,255,0.13)';ctx.lineWidth=1;ctx.beginPath();ctx.arc(joy.bx,joy.by,JOY_R,0,Math.PI*2);ctx.stroke();ctx.restore();}
+
+  // カウントダウン表示
+  if(gameState==='countdown'&&countdown>0){
+    const t=countdown;
+    const pulse=1+0.15*Math.sin((Date.now()%300)/300*Math.PI*2);
+    ctx.save();
+    // 半透明オーバーレイ
+    ctx.fillStyle='rgba(0,0,0,0.45)';
+    ctx.fillRect(0,0,W,H-220);
+    // 数字
+    ctx.globalAlpha=1;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowBlur=40;ctx.shadowColor='#ffeb3b';
+    ctx.fillStyle='#ffeb3b';
+    ctx.font='bold '+(Math.round(120*pulse))+'px sans-serif';
+    ctx.fillText(t,W/2,(H-220)/2);
+    ctx.shadowBlur=0;
+    // "READY?" テキスト
+    ctx.font='bold 28px sans-serif';
+    ctx.fillStyle='rgba(255,255,255,0.8)';
+    ctx.shadowBlur=10;ctx.shadowColor='#fff';
+    ctx.fillText('READY?',W/2,(H-220)/2-90);
+    ctx.shadowBlur=0;
+    ctx.restore();
+  }
 }
 let last=0;
 function loop(ts){if(ts-last>14){gameUpdate();draw();last=ts;}requestAnimationFrame(loop);}
