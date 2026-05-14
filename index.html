@@ -68,16 +68,12 @@ canvas{display:block;position:absolute;top:0;left:0;}
     <h1>POP SHOOTER</h1>
     <p class="sub">Select a mode to play</p>
     <div class="items-leg">
-      <!--
       <div class="il">💥拡散弾</div><div class="il">💣ボム</div><div class="il">⚡高速</div>
       <div class="il">🛡シールド</div><div class="il">🔮貫通</div><div class="il">💚回復</div>
-       -->
     </div>
-    <button class="mode-btn mode-solo" id="btn-mode-solo">SINGLE</button>
-    <button class="mode-btn mode-online" id="btn-mode-online">ONLINE</button>
-    <!--
+    <button class="mode-btn mode-solo" id="btn-mode-solo">ソロモード<span>コンピューターと対戦</span></button>
+    <button class="mode-btn mode-online" id="btn-mode-online">オンライン対戦<span>別のスマホと対戦</span></button>
     <p class="sub" style="font-size:0.72rem">💡 相手の背面に当てると2倍ダメージ！</p>
-    -->
   </div>
   <div class="screen" id="screen-lobby" style="display:none">
     <h1>POP SHOOTER</h1>
@@ -300,12 +296,13 @@ function sendEvent(evt){evtKey++;db.ref('rooms/'+roomCode+'/'+myRole+'/events/'+
 let lastSend=0;
 function sendState(now){
   if(now-lastSend<50)return;lastSend=now;
+  // 座標はホスト基準の絶対座標で送信（画面サイズに依存しないよう比率で送る）
   db.ref('rooms/'+roomCode+'/'+myRole+'/state').set({
-    x:Math.round(me.x),y:Math.round(me.y),
-    dx:+me.dir.x.toFixed(3),dy:+me.dir.y.toFixed(3),
-    hp:me.hp,ammo:me.ammo,shield:me.shield?1:0,
-    item:me.activeItem||'',charging:me.charging?1:0,
-    dodging:me.dodging?1:0,alive:me.alive?1:0
+    rx:+(me.x/W).toFixed(4), ry:+(me.y/FIELD_H).toFixed(4),
+    dx:+me.dir.x.toFixed(3), dy:+me.dir.y.toFixed(3),
+    hp:me.hp, ammo:me.ammo, shield:me.shield?1:0,
+    item:me.activeItem||'', charging:me.charging?1:0,
+    dodging:me.dodging?1:0, alive:me.alive?1:0
   });
 }
 function listenOpponent(){
@@ -313,7 +310,9 @@ function listenOpponent(){
   db.ref('rooms/'+roomCode+'/'+opRole+'/state').on('value',function(snap){
     if(!snap.exists()||!op)return;
     const d=snap.val();
-    op.x=d.x;op.y=d.y;op.dir.x=d.dx;op.dir.y=d.dy;
+    // 比率座標を実座標に変換
+    op.x=d.rx*W; op.y=d.ry*FIELD_H;
+    op.dir.x=d.dx; op.dir.y=d.dy;
     op.hp=d.hp;op.ammo=d.ammo;op.shield=!!d.shield;
     op.activeItem=d.item||null;op.charging=!!d.charging;op.dodging=!!d.dodging;
     const wasAlive=op.alive;op.alive=!!d.alive;op.hidden=isHidden(op);
@@ -379,11 +378,18 @@ function startOnline(){
 function initRound(){
   bullets=[];particles=[];items=[];roundEnded=false;
   walls=makeWalls(roomSeed+currentRound);
-  const isHost=myRole==='host';
-  const[mx,my2]=safePosX(isHost?W*.1:W*.85,FIELD_H*.45);
-  const[ox,oy]=safePosX(isHost?W*.85:W*.1,FIELD_H*.45);
-  me=makePlayer(mx,my2,'#ff6b9d',{x:1,y:0});
-  op=makePlayer(ox,oy,'#4ecdc4',{x:-1,y:0});
+  // ホスト・ゲスト共通の固定スポーン位置（画面サイズ比率で決定）
+  const spawnY=FIELD_H*0.45;
+  const[lx,ly]=safePosX(W*0.1, spawnY);   // 左側
+  const[rx,ry]=safePosX(W*0.85, spawnY);  // 右側
+  // ホストは左、ゲストは右に固定
+  if(myRole==='host'){
+    me=makePlayer(lx,ly,'#ff6b9d',{x:1,y:0});
+    op=makePlayer(rx,ry,'#4ecdc4',{x:-1,y:0});
+  }else{
+    me=makePlayer(rx,ry,'#4ecdc4',{x:-1,y:0});
+    op=makePlayer(lx,ly,'#ff6b9d',{x:1,y:0});
+  }
   itemSpawnTimer=Date.now()+ITEM_SPAWN_INTERVAL;
   document.getElementById('round-disp').textContent='Round '+currentRound+'/'+MAX_ROUNDS;
   updateHUD();updateAmmoUI();updateItemUI();
