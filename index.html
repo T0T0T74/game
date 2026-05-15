@@ -758,7 +758,12 @@ let last=0;
 function loop(ts){if(ts-last>14){gameUpdate();draw();last=ts;}requestAnimationFrame(loop);}
 requestAnimationFrame(loop);
 } // end initAll
-window.addEventListener('load',initAll);
+// ページがすでにロード済みの場合も対応
+if(document.readyState === 'complete' || document.readyState === 'interactive'){
+  initAll();
+} else {
+  window.addEventListener('load', initAll);
+}
 </script>
 </body>
 </html>
