@@ -294,6 +294,8 @@ function startSolo(){
 
 function sendEvent(evt){evtKey++;db.ref('rooms/'+roomCode+'/'+myRole+'/events/'+evtKey).set(evt);}
 
+function sendEvent(evt){evtKey++;db.ref('rooms/'+roomCode+'/'+myRole+'/events/'+evtKey).set(evt);}
+
 function mkBulletEvent(b){
   return{
     type:'bullet',
@@ -393,7 +395,11 @@ function joinRoom(){
 }
 function startOnline(){
   document.getElementById('screen-lobby').style.display='none';
-  wins=[0,0];currentRound=1;showGameUI();initRound();listenOpponent();
+  wins=[0,0];currentRound=1;
+  showGameUI();
+  // listenOpponentを先に登録してからinitRoundでme/opを初期化
+  listenOpponent();
+  initRound();
 }
 
 function initRound(){
@@ -518,8 +524,13 @@ function updateAI(now){
 }
 
 function gameUpdate(){
-  if(gameState!=='playing')return;
+  if(gameState!=='playing'&&gameState!=='countdown')return;
   const now=Date.now();
+
+  // カウントダウン中も位置を送信
+  if(gameMode==='online'&&me)sendState(now);
+
+  if(gameState!=='playing')return;
   if(me.ammo<MAX_AMMO&&now-me.lastRegenTime>=AMMO_REGEN){me.ammo++;me.lastRegenTime=now;updateAmmoUI();}
   if(me.activeItem&&me.itemExpiry&&now>me.itemExpiry){me.activeItem=null;me.itemExpiry=0;updateItemUI();}
   if(gameMode==='solo'||(gameMode==='online'&&myRole==='host')){
@@ -551,7 +562,7 @@ function gameUpdate(){
   }else{document.getElementById('charge-bar-fill').style.width='0%';if(!fireState.active)me.charging=false;}
   document.getElementById('regen-fill').style.width=me.ammo>=MAX_AMMO?'0%':Math.min(100,(now-me.lastRegenTime)/AMMO_REGEN*100)+'%';
   if(gameMode==='solo')updateAI(now);
-  if(gameMode==='online')sendState(now);
+  if(gameMode==='online')sendState(now); // playing中も送信継続
   for(let i=items.length-1;i>=0;i--){
     const it=items[i];
     for(const p of[me,op])if(p&&Math.hypot(p.x+15-it.x,p.y+15-it.y)<it.r+15){applyItem(p,it);items.splice(i,1);break;}
